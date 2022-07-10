@@ -11,20 +11,22 @@ import (
 	"sbytes_v3/entities"
 )
 
-type MongoService struct {
-	client     *mongo.Client
-	collection *mongo.Collection
-}
+type (
+	MongoService struct {
+		client     *mongo.Client
+		collection *mongo.Collection
+	}
+)
 
-func NewMongoService(uri string) *MongoService {
+func NewMongoService(uri string, dbName string, collectionName string) *MongoService {
 	ms := &MongoService{}
-	ms.Connect(uri)
+	ms.Connect(uri, dbName, collectionName)
 	ms.ping()
 
 	return ms
 }
 
-func (ms *MongoService) Connect(uri string) {
+func (ms *MongoService) Connect(uri string, dbName string, collectionName string) {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
 	if err != nil {
@@ -32,7 +34,26 @@ func (ms *MongoService) Connect(uri string) {
 	}
 
 	ms.client = client
-	ms.collection = ms.client.Database("sbytes").Collection("tickets")
+	ms.collection = ms.client.Database(dbName).Collection(collectionName)
+}
+
+func (ms *MongoService) Disconnect() {
+	if err := ms.client.Disconnect(context.TODO()); err != nil {
+		log.Println(err)
+	}
+
+	log.Println("Disconnected from MongoDB.")
+}
+
+func (ms *MongoService) ping() {
+	err := ms.client.Ping(context.TODO(), readpref.Primary())
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	log.Println("Connected to MongoDB.")
 }
 
 func (ms *MongoService) InsertTicket(ticket entities.Ticket) (interface{}, error) {
@@ -68,25 +89,6 @@ func (ms *MongoService) FindTicketAsBsonDocument(id string) (bson.M, error) {
 	return ticket, nil
 }
 
-func (ms *MongoService) ping() {
-	err := ms.client.Ping(context.TODO(), readpref.Primary())
-
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	log.Println("Connected to MongoDB.")
-}
-
-func (ms *MongoService) Disconnect() {
-	if err := ms.client.Disconnect(context.TODO()); err != nil {
-		log.Println(err)
-	}
-
-	log.Println("Disconnected from MongoDB.")
-}
-
 func (ms *MongoService) UpdateTicket(uuid string, ticket entities.Ticket) (interface{}, interface{}) {
 	objectId, err := primitive.ObjectIDFromHex(uuid)
 
@@ -95,9 +97,7 @@ func (ms *MongoService) UpdateTicket(uuid string, ticket entities.Ticket) (inter
 		return nil, err
 	}
 
-	filter := bson.M{"_id": objectId}
-
-	_, err = ms.collection.UpdateOne(context.TODO(), filter, ticket)
+	_, err = ms.collection.UpdateByID(context.TODO(), objectId, ticket)
 
 	if err != nil {
 		log.Println(err)

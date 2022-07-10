@@ -1,0 +1,4 @@
+GET http://localhost:2000/api/v1/ticket
+Accept: application/json
+
+###

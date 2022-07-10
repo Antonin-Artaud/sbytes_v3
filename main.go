@@ -2,25 +2,25 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 	"sbytes_v3/controllers"
 	"sbytes_v3/services"
 )
 
-const uri = "mongodb://localhost:27017"
-
 func main() {
+
+	properties := loadPropertiesFromYamlFile()
 
 	ginServer := gin.Default()
 
-	err := ginServer.SetTrustedProxies([]string{"192.168.1.15"})
-	if err != nil {
+	if err := ginServer.SetTrustedProxies(properties.Server.TrustedProxies); err != nil {
 		log.Println(err)
 	}
 
-	mongoDb := services.NewMongoService(uri)
+	mongoDb := services.NewMongoService(properties.Database.URI, properties.Database.DbName, properties.Database.DbCollection)
 
-	ticketGroup := ginServer.Group("/api/v1/tickets")
+	ticketGroup := ginServer.Group(properties.Server.ContextTicket)
 	{
 		controller := controllers.NewTicketController(mongoDb)
 		ticketGroup.POST("/", controller.CreateTicket)
@@ -28,7 +28,15 @@ func main() {
 		ticketGroup.PUT("/:id", controller.UpdateTicket)
 	}
 
-	if err := ginServer.Run(":8080"); err != nil {
+	if err := ginServer.Run(properties.Server.Port); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func loadPropertiesFromYamlFile() Properties {
+	var properties Properties
+	if err := cleanenv.ReadConfig("properties.yaml", &properties); err != nil {
+		return Properties{}
+	}
+	return properties
 }

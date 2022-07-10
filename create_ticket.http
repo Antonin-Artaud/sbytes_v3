@@ -1,5 +1,0 @@
-GET http://localhost:8080/api/v1/tickets/62c966a9c3145ed8a27653dd
-Accept: application/json
-
-###
-POST http://localhost:8080/api/v1/tickets

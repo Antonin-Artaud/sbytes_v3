@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const ExpirationTicketTime = 1 * time.Minute
+const ExpirationTicketTime = 2 * time.Minute
 
 type TicketController struct {
 	ms *services.MongoService
@@ -18,9 +18,10 @@ func NewTicketController(ms *services.MongoService) *TicketController {
 }
 
 func (r *TicketController) newTicket() *entities.Ticket {
+
 	return &entities.Ticket{
-		CreateAt:       time.Now().Unix(),
-		ExpirationDate: time.Now().Add(ExpirationTicketTime).Unix(),
+		CreateAt:       time.Now(),
+		ExpirationDate: time.Now().Add(ExpirationTicketTime),
 	}
 }
 
@@ -40,18 +41,9 @@ func (r *TicketController) CreateTicket(ctx *gin.Context) {
 func (r *TicketController) GetTicket(ctx *gin.Context) {
 	uriParamTicketId := ctx.Param("id")
 
-	document, err := r.ms.FindTicketAsBsonDocument(uriParamTicketId)
-
-	if isTicketNotFound(ctx, err) {
-		return
+	if document, err := r.ms.FindTicketAsBsonDocument(uriParamTicketId); !isTicketNotFound(ctx, err) {
+		ctx.JSON(200, document)
 	}
-
-	if document["expirationDate"].(int64) < time.Now().Unix() {
-		ctx.JSON(404, gin.H{"error": "Ticket is expired"})
-		return
-	}
-
-	ctx.JSON(200, document)
 }
 
 func isTicketNotFound(ctx *gin.Context, err error) bool {
@@ -69,17 +61,6 @@ func (r *TicketController) UpdateTicket(ctx *gin.Context) {
 
 	if err := ctx.BindJSON(&ticket); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	document, err := r.ms.FindTicketAsBsonDocument(uriParamTicketId)
-
-	if isTicketNotFound(ctx, err) {
-		return
-	}
-
-	if document["expirationDate"].(int64) < time.Now().Unix() {
-		ctx.JSON(404, gin.H{"error": "Ticket is expired"})
 		return
 	}
 

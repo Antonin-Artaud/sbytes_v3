@@ -1,6 +1,8 @@
 package entities
 
+import "time"
+
 type Ticket struct {
-	CreateAt       int64 `json:"CreateAt" bson:"create_at"`
-	ExpirationDate int64 `json:"ExpirationDate" bson:"expiration_date"`
+	CreateAt       time.Time `json:"CreateAt" bson:"create_at"`
+	ExpirationDate time.Time `json:"ExpirationDate" bson:"expiration_date"`
 }
