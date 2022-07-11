@@ -18,9 +18,13 @@ type (
 	}
 )
 
-func NewMongoService(uri string, dbName string, collectionName string) *MongoService {
+func NewMongoService(conf struct {
+	URI          string `yaml:"uri" env-default:"mongodb://localhost:27017"`
+	DbName       string `yaml:"db-name" env-default:"sbytes"`
+	DbCollection string `yaml:"db-collection" env-default:"tickets"`
+}) *MongoService {
 	ms := &MongoService{}
-	ms.Connect(uri, dbName, collectionName)
+	ms.Connect(conf.URI, conf.DbName, conf.DbCollection)
 	ms.ping()
 
 	return ms

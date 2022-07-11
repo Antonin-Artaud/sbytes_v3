@@ -12,4 +12,7 @@ type Properties struct {
 		DbName       string `yaml:"db-name" env-default:"sbytes"`
 		DbCollection string `yaml:"db-collection" env-default:"tickets"`
 	} `yaml:"database"`
+	Ticket struct {
+		ExpirationTime string `yaml:"expiration-time"`
+	} `yaml:"ticket"`
 }

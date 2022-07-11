@@ -11,7 +11,7 @@ func TestTicketLogic(t *testing.T) {
 }
 
 func TestTicketLogic_CreateTicket(t *testing.T) {
-
+	t.Skip("Not implemented")
 }
 
 func TestTicketLogic_GetTicket(t *testing.T) {

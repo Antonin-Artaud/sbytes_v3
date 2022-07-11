@@ -18,7 +18,7 @@ func main() {
 		log.Println(err)
 	}
 
-	mongoDb := services.NewMongoService(properties.Database.URI, properties.Database.DbName, properties.Database.DbCollection)
+	mongoDb := services.NewMongoService(properties.Database)
 
 	ticketGroup := ginServer.Group(properties.Server.ContextTicket)
 	{

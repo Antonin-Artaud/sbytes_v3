@@ -5,8 +5,10 @@ server:
     - "192.168.1.15"
   context-ticket: "/api/v1/tickets"
 
-
 database:
   uri: "mongodb://localhost:27017"
   db-name: "sbytes"
   db-collection: "tickets"
+
+ticket:
+  expiration-time: "120"
